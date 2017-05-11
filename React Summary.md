@@ -1086,7 +1086,7 @@
 
 4. We can start by considering **three essential methods**:
 
-    a. **describe** is used to group together similar tests. It takes two arguments, a string which is only used in reporting to describe the group of tests, and a callback function, the body of which contains the *it()* method, 
+    a. **describe** is used to group together similar tests. It takes two arguments, a string which is only used in reporting to describe the group of tests, and a callback function, the body of which contains the *it()* method. **Describe() blocks can be nested.** 
     
     b. **it** is used to describe a particular test. "It" takes two arguments as well, a string which is used only in reporting to describe the test, and a callback function, the body of which contains the *expect()* method.
     
@@ -1180,6 +1180,43 @@
         });
     });
     ```
+4. *BeforeEach* statement can add on to one another. For example, if there is a *describe()* method nested in another *describe()*, any *beforeEach()* of the outer *describe()* would run prior to each *it()* of the interior *descrbe()*.
+
+### Checking for Existence of a Child
+1. We often may want to check that a nested component exists on the parent component. The easiest way may be to create the component, then search for the child component using the jquery *.find()* method, and then using the *to.have.class()* matcher. If we assign to each component a class name that matches its component name, then this will allow us to locate it. So, if we have:
+    ```javascript
+    import React from 'react';
+    import CommentBox from './comment_box';
+
+    const App = () => (
+        <div>
+            <CommentBox />
+        </div>
+    );
+
+    export default App;
+    ```
+    We can run the following test:
+    ```javascript
+    describe('App Component', () => {
+        let component;
+        beforeEach(() => {
+            component = renderComponent(App);
+        });
+
+        it('shows the comment-box component', () => {
+            expect(component.find('.comment-box')).to.exist;
+        });
+    });
+    ```
+### Simulating User Events
+1. In order to test how our app is functioning, we need to be able to simulate events. We can do this with the **simulate** method, which takes the event as its first argument and the value coming from that event is the second argument. For example, we type into a textbox, creating a *change* event. We can simulate as follows:
+    ```javascript
+    beforeEach(() => {
+        component.find('textarea').simulate('change', 'new comment');
+    });
+    ```
+
 
 
 

@@ -1,7 +1,12 @@
 import React from 'react';
+import CommentBox from './comment_box';
+import CommentList from './comment_list';
 
 const App = () => (
-	<div>React simple starter</div>
+	<div>
+		<CommentBox />
+		<CommentList />
+	</div>
 );
 
 export default App;
