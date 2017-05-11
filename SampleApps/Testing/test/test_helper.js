@@ -17,11 +17,11 @@ const $ = _$(window);
 chaiJquery(chai, chai.util, $);
 
 function renderComponent(ComponentClass, props = {}, state = {}) {
-  const componentInstance =  TestUtils.renderIntoDocument(
-    <Provider store={createStore(reducers, state)}>
-      <ComponentClass {...props} />
-    </Provider>
-  );
+	const componentInstance = TestUtils.renderIntoDocument(
+		<Provider store={createStore(reducers, state)}>
+			<ComponentClass {...props} />
+		</Provider>,
+	);
 
   return $(ReactDOM.findDOMNode(componentInstance));
 }

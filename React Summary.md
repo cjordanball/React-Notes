@@ -1121,7 +1121,8 @@
         });
     });
     ```
-
+    **Note**: A test (an "it") can take *multiple expectations*, and will pass only if it passes each expectation.
+    
 7. Finally, we can run our tests. The following samples are scripts contained in the *package.json* file for a mocha testing call:
     ```json
     "test": "mocha --compilers js:babel-core/register
@@ -1133,7 +1134,13 @@
 ### Test Driven Development
 1. **Test Driven Development (TDD)** is an approach to writing code in which we create our tests first, then write code that will pass the test, and no more. To do correctly, it is important that we have a good idea in advance of how we wish to structure our application, and are able to list exactly what it is important for it to do.
 
-### Tests to Find Elements in a Compnent
+### Testing Environment Setup
+1. **Chai vs. Mocha**: A **testing suite** requires portions that will run our tests, as well as portions that will allow us to write our tests, with assertions, *etc*. This first portion, running the tests, is handled by a library such as **Mocha**. In constrast, **chai** and **chaiJquery** are libraries to handle writing of tests.
+
+2. We have very little interaction with **Mocha**.  It places the *describe*, *it*, variables on the global scope so they are available, but most everything else takes place behind the scenes.
+
+
+### Tests to Find Elements in a Component
 1. Note that it is possible (as we will see later) to write matchers and assertions from scratch. However, there are also a number of matcher libraries that provide large number of pre-written assertions / matchers.
 
 2. In this section, we will examine the use of an assertion library, **chai-jquery**. This library provides matchers that allow us to determine many various properties of html elements we are creating. It allows us to use jquery methods to identify components work with them, and includes a large number of assertions. In our example, we use the **.to.exist** and **to.have.class** assertions, as follows:
@@ -1216,6 +1223,26 @@
         component.find('textarea').simulate('change', 'new comment');
     });
     ```
+
+### Adding Props to Our Test Component
+1. We can add properties (the props object) to a test component by adding a third parameter to the *renderComponent* method. So, for example, if we have a component that is supposed to take in text strings in an array with a key of "comments", we can create the following:
+    ```javascript
+    component = renderComponent(
+        CommentList,
+        null,
+        {
+            comments: ['Test Comment 1', 'Test Comment 2']
+        }
+    )
+    ```
+
+### Redux - Testing Action Creators
+1. 
+
+### Redux - Testing Reducers
+1. First, we create a **reducers** direectory in our test directory, and create a file within that for each reducer.
+
+2. Next, we will want to create a test for our default case by including an action that is not in the reducer. We also test each different action type.
 
 
 
