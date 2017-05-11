@@ -1121,7 +1121,8 @@
         });
     });
     ```
-
+    **Note**: A test (an "it") can take *multiple expectations*, and will pass only if it passes each expectation.
+    
 7. Finally, we can run our tests. The following samples are scripts contained in the *package.json* file for a mocha testing call:
     ```json
     "test": "mocha --compilers js:babel-core/register
@@ -1217,6 +1218,17 @@
     });
     ```
 
+### Adding Props to Our Test Component
+1. We can add properties (the props object) to a test component by adding a third parameter to the *renderComponent* method. So, for example, if we have a component that is supposed to take in text strings in an array with a key of "comments", we can create the following:
+    ```javascript
+    component = renderComponent(
+        CommentList,
+        null,
+        {
+            comments: ['Test Comment 1', 'Test Comment 2']
+        }
+    )
+    ```
 
 
 
