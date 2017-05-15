@@ -1134,6 +1134,14 @@
 ### Test Driven Development
 1. **Test Driven Development (TDD)** is an approach to writing code in which we create our tests first, then write code that will pass the test, and no more. To do correctly, it is important that we have a good idea in advance of how we wish to structure our application, and are able to list exactly what it is important for it to do.
 
+### Testing Generally
+1. We can prevent a test from running by placing an x directly in front of the *it* statement. This tells mocha/jasmine to omit running the test.
+
+2. We can specify a test to be the **only** test run by using the "only()" method on a test instance, as follows:
+    ```javascript
+    it.only('does the stuff it is supposed to do', () => { });
+    ```
+
 ### Testing Environment Setup
 1. **Chai vs. Mocha**: A **testing suite** requires portions that will run our tests, as well as portions that will allow us to write our tests, with assertions, *etc*. This first portion, running the tests, is handled by a library such as **Mocha**. In constrast, **chai** and **chaiJquery** are libraries to handle writing of tests.
 
