@@ -1,12 +1,11 @@
-import React from 'react';
-import CommentBox from './comment_box';
-import CommentList from './comment_list';
+import React, { Component } from 'react';
 
-const App = () => (
-	<div>
-		<CommentBox />
-		<CommentList />
-	</div>
-);
+class App extends Component {
+	render() {
+		return (
+			<div>React simple starter</div>
+		);
+	}
+}
 
 export default App;
