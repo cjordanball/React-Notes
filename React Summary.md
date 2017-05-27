@@ -1088,9 +1088,9 @@
 
     a. **describe** is used to group together similar tests. It takes two arguments, a string which is only used in reporting to describe the group of tests, and a callback function, the body of which contains the *it()* method. **Describe() blocks can be nested.** 
     
-    b. **it** is used to describe a particular test. "It" takes two arguments as well, a string which is used only in reporting to describe the test, and a callback function, the body of which contains the *expect()* method.
+    b. **it()** is used to describe a particular test. "It" takes two arguments as well, a string which is used only in reporting to describe the test, and a callback function, the body of which contains the *expect()* method.
     
-    c. **expect** is used to make an assertion about our target. It will have a syntax consisting of the word "expect", followed by the thing we want to make an assertion about, followed by **matcheres**, followed by the expected value. For example:
+    c. **expect()** is used to make an assertion about our target. It will have a syntax consisting of the word "expect", followed by the thing we want to make an assertion about, followed by **matchers**, followed by the expected value. For example:
     ```javascript
     expect(component).to.have.class('comment-box');
     ```

@@ -6,7 +6,7 @@ describe('CommentBox', () => {
 	beforeEach(() => {
 		component = renderComponent(CommentBox);
 	});
-	it('has the correct class', () => {
+	it('has a css class of comment-box', () => {
 		expect(component).to.have.class('comment-box');
 	});
 	it('has a text area', () => {
@@ -14,18 +14,5 @@ describe('CommentBox', () => {
 	});
 	it('has a button', () => {
 		expect(component.find('button')).to.exist;
-	});
-
-	describe('entering some text', () => {
-		beforeEach(() => {
-			component.find('textarea').simulate('change', 'now is the winter');
-		});
-		it('shows text that in the textarea', () => {
-			expect(component.find('textarea')).to.have.value('now is the winter');
-		});
-		it('when submitted, clears the input', () => {
-			component.simulate('submit');
-			expect(component.find('textarea')).to.have.value('');
-		});
 	});
 });
