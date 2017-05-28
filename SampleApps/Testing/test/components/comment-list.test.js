@@ -9,8 +9,7 @@ describe('CommentList', () => {
 			CommentList,
 			null,
 			{
-				comments: ['Test Comment 1', 'Test Comment 2'],
-			},
+				comments: ['Test Comment 1', 'Test Comment 2']
 		);
 	});
 
