@@ -430,7 +430,7 @@
 3. In modern (ES6) React with class syntax, the initial state is set directly within the constructor method, as follows:
     ```javascript
     class App extends React.Component {
-        constructor() {
+        constructor(props) {
             super(props);
             this.state = {
                 prop1: false,
@@ -489,10 +489,11 @@
 
 2. With npm install, install the following: **react-redux** and **redux**.
 
-3. In our *app.js* file, make the following additional imports:
+3. In our *app.js* (or *index.js*, *i.e.*, the root file) file, make the following additional imports:
     ```javascript
     import { Provider } from 'react-redux';
     import { createStore, applyMiddleware } from 'redux';
+    import reducers from [path to reducers]
     ```
     The **Provider** method wraps around the **Store** (which holds all our pieces of **State** information, and makes it available to our React application. The Provider is the key connection between React and Redux.
     
@@ -1143,9 +1144,78 @@
     ```
 
 ### Testing Environment Setup
-1. **Chai vs. Mocha**: A **testing suite** requires portions that will run our tests, as well as portions that will allow us to write our tests, with assertions, *etc*. This first portion, running the tests, is handled by a library such as **Mocha**. In constrast, **chai** and **chaiJquery** are libraries to handle writing of tests.
+1. **Chai vs. Mocha**: A **testing suite** requires something that will run our tests, as well as something that will allow us to write our tests, with assertions, *etc*. This first portion, running the tests, is handled by a library such as **Mocha**. In constrast, **chai** and **chaiJquery** are libraries to handle writing of tests.
 
-2. We have very little interaction with **Mocha**.  It places the *describe*, *it*, variables on the global scope so they are available, but most everything else takes place behind the scenes.
+2. We have very little interaction with **Mocha**.  It places the *describe*, *beforeEach*, and *it* variables on the global scope so they are available, but most everything else takes place behind the scenes. It loads the tests, runs them, and cleans up after them.
+
+3. In contrast, a library such as *chai* provides helpers for making assertions.
+
+4. Note that some libraries, such as *chaiJQuery*, may redefine matchers for their own purposes, but be based on the underlying library such as *chai*. For example, *chai* has an *exist* method that asserts that the target is neither null nor undefined. *ChaiJQuery's* *exist* method is similar, but applies to jQuery objects.
+
+5. In our *test* directory, we include a file, *test-helper.js*. The remainder of this section will go through the steps involved in setting up that file.  It will have four main tasks, each discussed below:
+
+#### Set up environment to run like a browser in the command line
+1. Our code (the bundle.js file in webpack) is written to run in a browser environment, with lots of support provided therein; for example, it provides a window object, the DOM, *etc.*.
+
+2. This is an obvious problem in testing, where we are running our code in the terminal, without the browser environment. So, we need to set up things so that JQuery, etc., will be able to function. For example, we use a library called **jsdom** to simulate the DOM and HTML in a *nodeJS* environment.
+
+3. We begin by importing *jsdom* and then creating a document on the *global* object:
+    ```javascript
+    import jsdom from 'jsdom';
+
+    // Set up testing environment to run like a browser in the command line
+    global.document = jsdom.jsdom('<!doctype html><html><body></body></html>');
+
+    // build 'renderComponent' helper that should render a given react className
+
+    // buile helper for simulating events
+
+    // set up chaiJquery
+    ```
+    This will allow, for example, JQuery to refer to "document" and have it be defined.
+    
+4. We then set up JQuery, but have to attach it to our *fake* DOM. We do this by importing jQuery to an intermediate variable, and then assign to the "$" sign, as follows:
+    ```javascript
+    import jsdom from 'jsdom';
+    import _$ from 'jquery';
+    // Set up testing environment to run like a browser in the command line
+    global.document = jsdom.jsdom('<!doctype html><html><body></body></html>');
+    global.window = global.document.defaultView;
+    const $ = _$(global.window);
+    ```
+    Note that the "\_$" variable could be any name.
+#### build 'renderComponent' helper to provide react class instances
+1. The purpose of this portion is to be able to take any react class that we have written, and output the resulting DOM node, wrapped in a JQuery object. So, we will start by importing as follows:
+    ```javascript
+    import TestUtils from 'react-addons-test-utils';
+    import ReactDOM from 'react-dom';
+    ```
+2. The react test utilities has a method **renderIntoDocument()** that renders the react element into a detached DOM node. Then, we can use the **findDOMNode** method of ReactDOM to get a reference to the actual HTML, then wrap that with JQuery, as follows:
+    ```javascript
+    import jsdom from 'jsdom';
+    import _$ from 'jquery';
+    import TestUtils from 'react-addons-test-utils';
+    import ReactDOM from 'react-dom';
+
+    // Set up testing environment to run like a browser in the command line
+    global.document = jsdom.jsdom('<!doctype html><html><body></body></html>');
+    global.window = global.document.defaultView;
+    const $ = _$(global.window);
+
+    // build 'renderComponent' helper that should render a given react className
+    function renderComponent(ComponentClass) {
+        const componentInstance = TestUtils
+        .renderIntoDocument(<ComponentClass />);
+	return $(ReactDOM.findDOMNode(componentInstance));
+    }
+    ```
+    The purpose of making it a jQuery object is so we have access to the chai-jQuery matchers.
+    
+#### Build a helper for simiulating events
+
+#### Set up chai-jquery
+
+    
 
 
 ### Tests to Find Elements in a Component
@@ -1220,7 +1290,8 @@
         });
 
         it('shows the comment-box component', () => {
-            expect(component.find('.comment-box')).to.exist;
+            expect(component.find('.comment-box')).to
+            .exist;
         });
     });
     ```
@@ -1228,7 +1299,8 @@
 1. In order to test how our app is functioning, we need to be able to simulate events. We can do this with the **simulate** method, which takes the event as its first argument and the value coming from that event is the second argument. For example, we type into a textbox, creating a *change* event. We can simulate as follows:
     ```javascript
     beforeEach(() => {
-        component.find('textarea').simulate('change', 'new comment');
+        component.find('textarea')
+        .simulate('change', 'new comment');
     });
     ```
 
@@ -1245,12 +1317,55 @@
     ```
 
 ### Redux - Testing Action Creators
-1. 
+1. Testing the action creators is pretty straightforward.  The following is the *test/actions/actions.test.js* file for a simple, one action app:
+    ```javascript
+    import { expect } from '../test_helper';
+    import { SAVE_COMMENT } from '../../src/actions/types';
+    // note that brackets may be incorrect depending 
+    // on type of export 
+    import { saveComment } from '../../src/actions';
+
+    describe('actions', () => {
+        describe('saveComment', () => {
+            it('has the correct type', () => {
+                const action = saveComment();
+                expect(action.type).to.equal(SAVE_COMMENT)
+            });
+            it('has the correct payload', () => {
+                const action = saveComment('new comment');
+                expect(action.payload).to.equal('new comment');
+            });
+        });
+    });
+    ```
+2. As a style matter, note the pattern of making a *describe* for all actions, then a separate, nested describe for each individual action creator. Then, for each action creator, there are going to be two fundamental questions: does the action creator have the correct type, and does it have the correct payload.
+
 
 ### Redux - Testing Reducers
 1. First, we create a **reducers** direectory in our test directory, and create a file within that for each reducer.
 
 2. Next, we will want to create a test for our default case by including an action that is not in the reducer. We also test each different action type.
+
+3. The following is a sample set of tests for a simpe reducer:
+    ```javascript
+    import { expect } from '../test_helper';
+    import commentReducer from '../../src/reducers/comments';
+    import actions from '../../src/actions/types';
+
+    describe('Comments Reducer', () => {
+        it('handles action with unknown type', () => {
+            const output = commentReducer(['old comment'],
+            { type: 'Bazoom', payload: 'this is fake data' });
+            expect(output).to.eql(['old comment']);
+        });
+
+        it('handles action of type SAVE_COMMENT', () => {
+            const action = { type: actions.SAVE_COMMENT, payload: 'new comment' };
+            const output = commentReducer([], action);
+            expect(output).to.eql(['new comment']);
+        });
+    });
+    ```
 
 
 

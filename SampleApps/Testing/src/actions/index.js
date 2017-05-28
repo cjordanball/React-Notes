@@ -1,8 +1,8 @@
-// import { SAVE_COMMENT } from './types';
-//
-// export function saveComment(comment) {
-// 	return {
-// 		type: SAVE_COMMENT,
-// 		payload: comment
-// 	}
-// }
+import actions from './types';
+
+export const saveComment = (comment) => {
+	return {
+		type: actions.SAVE_COMMENT,
+		payload: comment,
+	};
+};

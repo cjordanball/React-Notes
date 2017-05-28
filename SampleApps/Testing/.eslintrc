@@ -8,7 +8,8 @@
         "import/no-unresolved": [2, {"caseSensitive": false}],
         "import/no-extraneous-dependencies": ["error", {"devDependencies": true}],
         "no-console": ["error", allow: ["log"]],
-        "react/jsx-indent-props": [2, 'tab']
+        "react/jsx-indent-props": [2, 'tab'],
+        "comma-dangle": ["error", "never"]
     },
     "globals": {
         "document": false,

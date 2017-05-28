@@ -1,1 +1,5 @@
-// export const SAVE_COMMENT = 'save_comment';
+const Actions = {
+	SAVE_COMMENT: 'save_comment',
+};
+
+export default Actions;
