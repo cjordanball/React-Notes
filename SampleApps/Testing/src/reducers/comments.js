@@ -1,10 +1,12 @@
-// import { SAVE_COMMENT } from '../actions/types';
-//
-// export default function(state = [], action) {
-// 	switch (action.type) {
-// 		case SAVE_COMMENT:
-// 			return [...state, action.payload];
-// 		default:
-// 			return state;
-// 	}
-// }
+import actions from '../actions/types';
+
+const CommentsReducer = (state = [], action) => {
+	switch (action.type) {
+	case actions.SAVE_COMMENT:
+		return [...state, action.payload];
+	default:
+		return state;
+	}
+};
+
+export default CommentsReducer;
