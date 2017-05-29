@@ -1216,6 +1216,7 @@
 
 3. Finally, for any tests that involve containers, we will need our components to be hooked up to redux, by being wrapped by \<Provider> and having access to a store. Do it as follows (for more detail in what it all means, see the section on Higher Order Components):
     ```javascript
+<<<<<<< Updated upstream
     import React from 'react';
     import jsdom from 'jsdom';
     import _$ from 'jquery';
@@ -1264,6 +1265,13 @@
         TestUtils.Simulate[eventName](this[0]);
     };
     ```
+=======
+    
+    ```
+
+    
+#### Build a helper for simulating events
+>>>>>>> Stashed changes
 
 #### Set up chai-jquery
 1. Finally, import the 'chai-jquery' library and set up as follows:
