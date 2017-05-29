@@ -1,9 +1,28 @@
 import React, { Component } from 'react';
+import { BrowserRouter, Route, Switch } from 'react-router-dom';
+import { connect } from 'react-redux';
 
-export default class App extends Component {
-  render() {
-    return (
-      <div>React simple starter</div>
-    );
-  }
+import Home from './home';
+import Resources from './resources';
+import Header from './header';
+
+class App extends Component {
+	componentWillMount() {
+		this.props.history.push('/home');
+	}
+	render() {
+		return (
+			<div>
+			<Header {...this.props} auth={this.props.authorized}/>
+			</div>
+		);
+	}
 }
+
+function mapStateToProps(state) {
+	return {
+		authorized: state.authenticated
+	}
+}
+
+export default connect(mapStateToProps)(App);

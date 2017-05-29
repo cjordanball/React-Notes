@@ -332,7 +332,9 @@
     ```
 
 4. **componentWillUnmount** is where we can clean up any processes that were set up on the component. For example, if we ran *addChangeListener* in the earlier stages, then we should run *removeChangeListener*.
-		
+
+5. **componentWillUpdate** gets called whenever the component is about to get handed a new set of *props*. It takes as a parameter **nextProps**, the set of props it is about to get.
+
 5. ReactDOM has a method *unmountComponentAtNode()*, which is the inverse of the ReactDOM.render() method. It takes a single parameter, the node where the component is mounted. For example:
     ```javascript
     unmount() {
@@ -1432,8 +1434,97 @@
     });
     ```
 
+	
+## Higher Order Components (formerly Mixins)
+1. A **higher order component** is a React component that adds some additional functionality or behaviour to an existing component. We add to an ordinary React component, *i.e.*, one that puts HTML on the page, the HOC, and end up with what is termed an **enhanced** or **composed component.** In this process we are adding some functionality or data.
 
+2. Its primary purpose is to extract functionality that is common to multiple comonents.
 
+3. HOCs are used frequently with third-party libraries such as react-redux.
+
+### Example: Connect
+1. A frequently used example of an HOC is the **connect()** method from react-redux. *connect()* is a component that wraps those React components that we want to treat as containers, and provides them with added functionality; in this case, the ability to communicate with the Redux store, which is wrapped by Provider.
+
+### Example: Our HOC - Route Authenication
+1. The discussion in this section will be following the creation of our own HOC, which will assist with checking the authorization of a user to access restricted routes. The entire code will be contained in "sampleApps/HigherOrderComponents".
+
+2. In our case, the underlying React component will be some protected resource component. Our HOC will wrap that component to provide authorization checking before rendering.
+
+3. To start, create a subdirectory under *components* for the HOCs. In that directory, we will create a file, *require_auth.js* to hold our HOC.
+
+4. Next, we will begin coding our HOC. First, we need to import React and { Component }, and we need to set up our export as a *function*, not a class. The function will take a single parameter, which by convention we call *ComposedComponet*.
+    ```javascript
+    import React, { Component } from 'react';
+
+    export default function(ComposedComponent) {
+
+    }
+    ```
+5. Then, we will begin with the following code:
+    ```javascript
+    import React, { Component } from 'react';
+
+    export default function(ComposedComponent) {
+        class Authentication extends Component {
+            render() {
+                return <ComposedComponent {...this.props} />
+            }
+        }
+        return Authentication;
+    }
+    ```
+    **NOTE**: The above code is basically the starting point for every HOC.
+    
+    The most interesting line of the above code might be the {....props} piece. This allows whatever props are passed into our instance of the ComposedComponent (see below) to flow into the component returned by our HOC.
+    
+6. Note that the above code allows us to do something along the lines of:
+    ```javascript
+    import HOC
+    import PlainComponent
+    
+    const ComposedComponent = ROC(PlainComponent);
+    
+    // later, in a render() method
+    <ComposedComponent />
+    ```
+7. So, we can then use this HOC on our "Resources" component by importing it into *index.js* and then wrapping our Resources component, as follows:
+    ```javascript
+    <Route path="/resources" component={requireAuth(Resources)} />
+    ```
+    Eventually, this will check to see if the user is authorized and, if not, block the route. For now, however, there is no change in the functionality of the component.
+
+8. At the end, this is our HOC, to check if the user is authorized and, if not, to send him back to the home page:
+    ```javascript
+    import React, { Component } from 'react';
+    import { connect } from 'react-redux';
+
+    export default function(ComposedComponent) {
+        class Authentication extends Component {
+            componentWillMount() {
+                if (!this.props.authenticated) {
+                    this.props.history.push('/home');
+                }
+            }
+            componentWillUpdate(nextProps) {
+                if (!nextProps.authenticated) {
+                    this.props.history.push('/home');
+                }
+            }
+            render() {
+                return <ComposedComponent {...this.props} />
+            }
+        }
+
+        const mapStateToProps = state => (
+            {
+                authenticated: state.authenticated
+            }
+        );
+
+        return connect(mapStateToProps)(Authentication);
+    }
+    ```
+    
 
 ## Webpack Setup
 
@@ -1574,71 +1665,7 @@ Note: Note: React.PropTypes is deprecated as of React v15.5. Please use the prop
 
 
 
-	
-### Higher Order Components (formerly Mixins)
 
-1.	These have taken over the place of mixins in ES6 class components.
-
-2.	It is a way to package functionality in one place, then distribute it to multiple components.	
-
-3.	Examine the following sample:
-
-		"use strict";
-		import React from 'react';
-
-		let Mixin = (InnerComponent) => class extends React.Component {
-    		constructor() {
-        		super();
-        		this.update = this.update.bind(this);
-        		this.state = {
-            		val: 0,
-            		name: 'Jordan'
-        		}
-    		}
-    		update() {
-        		this.setState({val: this.state.val + 1})
-    		}
-    		render() {
-        		return <InnerComponent
-        			update={this.update}
-        			{...this.state}
-        			{...this.props} />
-    		}
-		}
-
-		const Button = (props) => {
-    		return <button onClick={props.update}>{props.txt} - {props.val}</button>
-		}
-
-		const Label = (props) => <label onMouseMove={props.update}>{props.txt} - {props.val}</label>
-
-		let ButtonMixed = Mixin(Button);
-		let LabelMixed = Mixin(Label);
-
-		class App extends React.Component {
-    		render() {
-        		return (
-            		<div>
-                		<ButtonMixed txt='Button1' />
-                		<LabelMixed txt='Label' />
-            		</div>
-        		);
-    		}
-		}
-
-		export default App
-
-4.	In the above sample, we have basic functionality that we want to use in both the button and the label; *i.e.*, when an event occurs (click or mouseMove), the state increases by one and the component rerenders.  This common functionality is put into the designated class "Mixin", which takes a single parameter, "InnerComponent".
-
-5.	**Tricky Point** Note that when Mixin renders, it includes all state and all props properties as props of the returned InnerComponent.
-
-6.	Note that we declare two static components, Button and Label.  They take props as parameters, and return a button or label element.
-
-7.  We then create two instances of the Mixin class, using Button and Label, which are assigned to the variables "ButtonMixed" and "LabelMixed".
-
-8.  **For an excellent example of the use of Higher-Order Components, see the React Shopping Cart App.**
-
-		
 
 
 ### Refs
