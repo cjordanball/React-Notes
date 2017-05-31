@@ -700,7 +700,7 @@
     
 ### Redux - Middleware
 
-1. **Middleware** in Redux are functions that take an *action* and do something with it (which might be doing nothing) before it is passed onto the *reducer*. It might be logging, manipulation, terminating in certain cases, *etc*.
+1. **Middleware** in Redux are functions that take an *action* and do something with it (which might be doing nothing) before it is passed on to the *reducers*. It might be logging, manipulation, terminating in certain cases, *etc*.
 
 2. We can have many different middlewares set up between the action and the reducer.
 
@@ -812,20 +812,54 @@
     }
     ```
     **NOTE**: In the above example, we are merely allowing the promise time to get fulfilled, then manually calling dispatch to send our action out to all the reducers.
-
-:::danger
-
-:::
-
-   
+    
+    **Note**: In our action creator, we wrap our asynchronous call in a function, passing in the parameter **dispatch**. What happens is that redux, upon noting that our action creator is returning a function, allows the inner function to run, and then sends out the object to the reducers by manually calling the **dispatch** method.
 
 
-### Asynchronous Action Creators
+### Custom Middleware
+1. In the example below (exemplified by the *ReduxMiddleWare* app in the *SampleApps* directory), we will create our own middleware to assist with the handling of an AJAX request.
 
+2. Middlewares get called with a common interface. They get called by the particular action created by the action creator, do what they need to do for that action (which may be nothing at all), then pass the result onto the next middleware, using the keyword **next**. Once the action comes out of a middleware with no **next()** statement, it gets forwarded immediately to the reducers.
 
+3. To start, let's create a directory to hold our middlewares, **/src/middlewares**. Then, for each middleware, we should have a file (in our example, it will be *async.js*) with the following structure:
+    ```javascript
+    export default function ({ dispatch }) {
+        return next => action => {
+        
+            next(action)
+        }
+    }
+    ```
+    **dispatch** is a method provided by *redux* that sends the action out of the action creator and on to the reducers (after going through any middleware).
+    
+    **next** is a method provided by *redux* that sends the action (the parameter) out to the next middleware in line. If there is no more middleware in line, then it is sent to the reducers.
 
-7. Next, in our action creator, we wrap our asynchronous call in a function, passing in the parameter **dispatch**. What happens is that redux, unpon noting that our action creator is returning a function, allows the inner function to run, and then send out the object to the reducers by manually calling the **dispatch** method.
+4. In our *index.js* file, where we are wrapping the App with the Provider, *etc.*, we should place our middlewares in line with the following:
+    ```javascript
+    const addMidWare = applyMiddleware(mid1, mid2, mid3)(createStore);
+    ```
+    **applyMiddleware** is a *redux* method that is imported in, along with **createStore**, destructured from redux.
 
+5. Then, we add in the functionality into our middleware files. In the example below, we are checking to see if the payload is a promise; if it is, we wait for it to resolve and then proceed; if not, then we just pass it on to the next middleware:
+    ```javascript
+    export default function({ dispatch }) {
+        return next => action => {
+            if (action.payload.then){
+                action.payload.then(data => {
+                    let newAction = {
+                        type: action.type,
+                        payload: data
+                    }
+                    return dispatch(newAction);
+                });
+            }
+            next(action);
+        }
+    }
+    ```
+    **dispatch**: note that if we are working with a promise, we use the dispatch method. This sends our action back to the front of the middleware line, whereas **next** sends it on to the next middleware. This allows anything to be done on the actual data that might have been missed when it was just a promise.
+    
+    **return**: the return statement is not necessary, it is only there to terminate the function before getting tot the following *next* statment. Using *if / else* would achieve the same.
 
 
 ## React Router
