@@ -509,6 +509,21 @@
     ```
 5. In our *src* folder, create a new folder called **reducers**, and create a file therein named **index.js** (to aggregate multiple reducers (one per file) in our reducers directory.
 
+6. **ADVANCED NOTE**: This is really more of an advanced level issue that is a bit out-of-place in setup, but is of interest. The **dispatch()** method, which will be addressed in detail in the *Redux-Thunk* section, is a method of the **store** object. This gives us an opportunity to influence *store* before it is given to the provider. For example, if we are saving a JWToken for our user on *localStorage*, and the token exists, then we will want the user to be treated as authenticated. But if the page is refreshed, the *authenticated* property will get reset to its default state of "false". By looking for the token, and if it exists, changing the state of authenticated to true, we can prevent the user from being accidentally unauthenticated:
+    ```javascript
+    const createStoreWithMiddleware = applyMiddleware(reduxThunk)(createStore);
+    const store = createStoreWithMiddleware(reducers);
+    const token = localStorage.getItem('token');
+    if (token) {
+        store.dispatch({ type: ActionTypes.AUTH_USER });
+    }
+
+    ReactDOM.render(
+        <Provider store={store}>
+            <BrowserRouter>
+            . . .
+    ```
+
 
 
 ### Reducers
@@ -863,7 +878,7 @@
 
 
 ## React Router
-1. **Introductory Note**: These notes have been updated for **react-router-dom** version 4.0. Previously, there was just a single *react-router* flavor; now it is split up into a *DOM* version, and other platform versions, such as *React Native*.
+1. **Introductory Note**: These notes have been updated for **react-router-dom** version 4.0. Previously, there was just a single *react-router* flavor; now it is split up into three versions: **react-router**, **react-router-dom**, and **react-router-native**.  However, *react-router-dom* exports out the *react-router* exports, so that is all we need to import into our web app.
 
 2. **Background**: A "traditional: approach to using the web involved the user seeing a page, then clicking on a link.  This would send a request to a server, and the server would put together a whole new page, which would then be sent as a response to the client. The purpose of modules such as react-router is to completely circumvent this process; instead of requesting a new page from the server, we simply get the page from the client (where it is rendered with React). We only connect with the server to get outside information (such as weather data, or a list of movie data, etc.).
 
@@ -872,6 +887,8 @@
 4. **react-router** intercepts requests, inspects the url and, if it recognizes the url, handles it appropriately without sending any http requests.
 
 5. React router also installs a package called **history**, which runs behind-the scenes.
+
+
 
 ### Initial Example
 1. As a bare-bones, stripped-down example, let's make the following import and create two components in our index.js file, as follows:
@@ -887,7 +904,7 @@
     );
     ```
 
-2. Next, where we previously had our single **<App />** insertion tag, replace it with the **\<BrowserRouter>\</BrowserRouter>** tag. This becomes the insertion point for the components delivered by our router. *BrowserRouter* is what interacts with the *history* library, and decides what to do if there is a change in the url.
+2. Next, where we previously had our single **<App />** insertion tag, replace it with the **\<BrowserRouter>\</BrowserRouter>** tag. This becomes the insertion point for the components delivered by our router. Each *BrowserRouter* has a **history** object, which it uses to keep track of the current location and to re-render the page when it changes.
 
 3. Inside the \<BrowerRouter> tag, place what we want to deliver to the page. Remember that the \<BrowserRouter> can only contain a single top-level component, so multiple components must be wrapped in a \<div> or other wrapping component. We can insert plain components into the \<BrowserRouter>.  **In addition**, we can insert **\<Route>\</Route>** tags, which must contain two properties, **path**, and **route**:
     ```javascript
@@ -901,9 +918,19 @@
     ```
     **NOTE**: The **\<Route>** tag basically acts as a boolean show/not show test. React Router checks the URL path from the **history** module. If it matches the **path** property of the tag, then the component is rendered. If not, then the component designated in the **component** prop is ignored. In the above example, the \<Header /> will always show, because there is no Route applicable to it.
     
+    **NOTE**: React Router only attempts to match the pathname. So, in the url:
+    ```html
+    http://www.example.com/my-projects/one?extra=false
+    ```
+    the only portion that is matched is: "my-projects/one".
     
-### Use of Switch
+4. A good practice is to have a single component (such as *\<App />*) be placed into the *\<BrowserRouter>* tag, and then have the App component be the gateway. 
+    
+    
+### Use of *Exact* and *Switch*
 1. As we saw in the initial example, React router checks each path and, if satisfied, puts the associated component on the screen. While this sometimes might be handy, it could lead to unexpected results. In particular, react-router uses *greedy matching*, which will count as a match anything where the target contains the needle. For example, "/" will match to "/users/:id", "/index", *i.e.*, anything that contains a "/".
+
+2. When we include a *path* prop in the *\<Route>* component, the path will be considered a match if the path in the URL is contained in the Route path prop. For example, if the url is "/users", then it will match routes with paths "/users", "users/2", "users/names", *etc.* However, if we add the **exact** prop, it will only match paths that are the same. 
 
 2. To restrict our routing to just returning a single component, we use the **\<Switch>** tag to enclose our routes. **Only the first match** (if any) of the included routes will be selected. As an example:
     ```javascript
@@ -932,6 +959,8 @@
     ```
     **NOTE**: The order of the routes withing the \<Switch> tag is important. Only the first match will get displayed, so the most specific path should be listed first.
     
+    **NOTE**: One might come across a *\<Match />* component tag. This is identical to *\<Route />*, and was used in the alpha version.
+    
 ### Following a Link
 1. In React or other SPAs, we do not use \<a> tags to navigate, because they cause a change in HTML page. Instead, we want to stay on the same page, but merely dictate a new group of components to render. To do this, we use the **Link** object from *react-router-dom*.
 
@@ -950,9 +979,9 @@
 ### Programatic Navigation
 1. When using a \<Link>, we are depending on the user clicking on something to make us follow a specified route. In contrast, **programatic navigation** involves the route changing in connection with non-user events, such as a form being successfully submitted.
 
-2. When a component is being rendered by a Route, React places in a number of items into that component's props object.
+2. When a component is being rendered by a Route, React places in a number of items into that component's props object. One of the useful items on the props object is the **history** object. This object has a **push()** method, which takes as a parmeter a route (in quotes). The route should have been designated as a Route in the "BrowserRouter".
 
-3. One of the useful items on the props object is the **history.push()** method, which allows us to designate a route.
+3. **NEAT THING**: The history object can be accessed as a property of the component, and can be passed in as a parameter to an action creator, so that the navigation can be initiated from the action creator. See the front-end of the auth app for an example.
 
 ## Forms, With Redux Form
 ### Introduction
@@ -1516,7 +1545,7 @@
     import HOC
     import PlainComponent
     
-    const ComposedComponent = ROC(PlainComponent);
+    const ComposedComponent = HOC(PlainComponent);
     
     // later, in a render() method
     <ComposedComponent />
@@ -1559,7 +1588,43 @@
     }
     ```
     
+## Working with Modals in React
+1. Creating modals is one task that React does not handle very well. The main problem is that, because everything typically funnels through a single \<app> root component, the modal will be somewhere down in the DOM tree. Of course, we want the modal to cover the entire browser viewport, but if any branch that it is on is set behind another branch, the modal will not be able to show on top.
 
+2. To get around this, we will add a compoent to our architecture. For example, we may want the following structure:
+
+    a. At the very bottom of everything, we have an *index.html* page that shows our app. In the body of that page, there is an *insertion \<div>* with the id of "root".
+    
+    b. The app will be inserted into the DOM by means of a *main.js* file, which imports our root \<App /> component, wraps it with the redux store Provider, and sends it to the *index.html* page via the *react-dom* render() method.
+    
+    c. The **\<App />** component, will contain, along with the **\<BrowserRouter>** component that contains our apps routes to create our pages, another component (remember to have a single containing \<div>). Below is an example:
+    ```javascript
+    import React from 'react';
+    import { BrowserRouter } from 'react-router-dom';
+    import Main from './main';
+    import Header from './header';
+    import ModalRouter from './modal_router';
+
+    const App = () => (
+        <div>
+            <BrowserRouter>
+                <div>
+                    <Header />
+                    <Main />
+                </div>
+            </BrowserRouter>
+            <ModalRouter />
+        </div>
+    );
+
+    export default App;
+    ```
+    I named the added component "ModalRouter" because it will act as a gateway, telling us which modal to present.
+    
+    d. Next, we will need to create a variable to keep track of which modal is showing on the page, which will be part of our application state managed by redux. Normally, this will have a value of "null", in which case no modal is showing.
+    
+    e. We will also want to create a single component to serve as a general modal wrapper, which will have functionality common to all our various modals.
+    
 ## Webpack Setup
 
 
